@@ -2,7 +2,7 @@ import express from 'express'
 import mongoose from 'mongoose'
 import cookieParser from 'cookie-parser'
 import cors from 'cors'
-import router from './routes/authRouter'
+import router from './routes/authRouter.js'
 
 mongoose.connect('mongodb+srv://ecommerce:ecommerce@ecommerce-cluster.lh4q4w9.mongodb.net/')
 .then(console.log('MongoDB Connected Successfully'))

@@ -1,8 +1,14 @@
 // src/pages/auth/Register.jsx
 
+import { registerUser } from '@/store/authSlice';
 import { useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
+import {toast} from 'react-hot-toast'
 
 const Register = () => {
+  const dispatch=useDispatch();
+  const navigate=useNavigate()
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -19,7 +25,15 @@ const Register = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log(formData);
+    dispatch(registerUser(formData)).then((data)=>{
+      if(data?.payload?.success){
+        toast.success(data?.payload?.message)
+        navigate('/auth/login')
+      }else{
+        toast.error(data?.payload?.message || 'error while registering user')
+      }
+     
+    })
   };
 
   return (
@@ -79,7 +93,7 @@ const Register = () => {
        
         <button
           type="submit"
-          className="w-full py-2 px-4 bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700 text-white font-bold rounded-lg shadow-md hover:shadow-lg transition-all duration-300"
+          className="w-full py-2 px-4 bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700 text-white font-bold rounded-lg shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer"
         >
           Register
         </button>

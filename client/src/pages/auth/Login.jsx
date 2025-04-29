@@ -1,8 +1,12 @@
 // src/pages/auth/Login.jsx
 
+import { loginUser } from '@/store/authSlice';
 import { useState } from 'react';
+import toast from 'react-hot-toast';
+import { useDispatch } from 'react-redux';
 
 const Login = () => {
+  const dispatch=useDispatch()
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -14,7 +18,14 @@ const Login = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log(formData);
+    dispatch(loginUser(formData)).then((data)=>{
+      console.log(data)
+      if(data?.payload?.success){
+        toast.success(data?.payload?.message)
+      }else{
+        toast.error(data?.payload?.message)
+      }
+    })
   };
 
   return (
@@ -51,7 +62,7 @@ const Login = () => {
 
         <button
           type="submit"
-          className="w-full py-2 px-4 bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white font-bold rounded-lg shadow-md hover:shadow-lg transition-all duration-300"
+          className="w-full py-2 px-4 bg-gradient-to-r from-blue-500 to-blue-700 hover:from-blue-600 hover:to-blue-800 text-white font-bold rounded-lg shadow-md hover:shadow-lg transition-all duration-300 cursor-pointer"
         >
           Sign In
         </button>

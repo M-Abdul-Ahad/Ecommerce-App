@@ -14,13 +14,30 @@ import Listing from "./pages/shopping-view/Listing"
 import Checkout from "./pages/shopping-view/Checkout"
 import Account from "./pages/shopping-view/Account"
 import CheckAuth from "./components/common/CheckAuth"
-
+import { Toaster } from "react-hot-toast"
+import { useDispatch, useSelector } from "react-redux"
+import { useEffect } from "react"
+import { checkAuth } from "./store/authSlice"
+import ClipLoader from "react-spinners/ClipLoader";
 
 function App() {
-  const isAuthenticated=false
-  const user=null
+  const {user,isAuthenticated,isLoading}=useSelector((state)=>state.auth)
+
+  const dispatch=useDispatch()
+  useEffect(()=>{
+    dispatch(checkAuth())
+  },[dispatch])
+  if(isLoading){
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <ClipLoader color="#36d7b7" size={150} />
+      </div>
+    );
+  }
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+      <Toaster position="top-right" reverseOrder={false} />
+      
         <Routes>
         <Route path="*" element={<PageNotFound />} />
           {/* Auth routes */}

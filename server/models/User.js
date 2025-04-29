@@ -1,6 +1,6 @@
 import mongoose from 'mongoose'
 const UserSchema=new mongoose.Schema({
-    userName:{
+    name:{
         type: String,
         required:true,
         unique:true
@@ -16,6 +16,7 @@ const UserSchema=new mongoose.Schema({
         unique:true
     },
     role:{
+        type: String,
         default:'user'
     }
 })
