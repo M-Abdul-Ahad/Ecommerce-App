@@ -1,17 +1,52 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { CloudArrowUpIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
-const ImageUpload = () => {
+const ImageUpload = ({ onUpload, reset }) => {
   const [image, setImage] = useState(null);
-  const fileInputRef = useRef(null);
+  const [cloudinaryUrl, setCloudinaryUrl] = useState(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef(null);
 
-  const handleImageSelect = (file) => {
-    if (file && file.type.startsWith('image/')) {
-      setImage({
-        file,
-        url: URL.createObjectURL(file),
+  useEffect(() => {
+    if (reset) {
+      setImage(null);
+      setCloudinaryUrl(null);
+      if (fileInputRef.current) fileInputRef.current.value = null;
+    }
+  }, [reset]);
+
+  const handleImageSelect = async (file) => {
+    if (!file || !file.type.startsWith('image/')) return;
+
+    setImage({
+      file,
+      url: URL.createObjectURL(file),
+    });
+
+    const formData = new FormData();
+    formData.append('my_file', file);
+
+    try {
+      setUploading(true);
+      const res = await fetch('http://localhost:5000/api/admin/products/upload-image', {
+        method: 'POST',
+        body: formData,
       });
+
+      const data = await res.json();
+
+      if (data.success) {
+        setCloudinaryUrl(data.result.secure_url);
+        onUpload?.(data.result.secure_url);
+      } else {
+        alert('Upload failed');
+      }
+    } catch (err) {
+      console.error('Image upload error:', err);
+      alert('Something went wrong during upload.');
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -22,7 +57,9 @@ const ImageUpload = () => {
 
   const handleImageDelete = () => {
     setImage(null);
+    setCloudinaryUrl(null);
     fileInputRef.current.value = null;
+    onUpload?.('');
   };
 
   const handleDragOver = (e) => {
@@ -30,9 +67,7 @@ const ImageUpload = () => {
     setIsDragging(true);
   };
 
-  const handleDragLeave = () => {
-    setIsDragging(false);
-  };
+  const handleDragLeave = () => setIsDragging(false);
 
   const handleDrop = (e) => {
     e.preventDefault();
@@ -54,9 +89,9 @@ const ImageUpload = () => {
       />
 
       <div
-        className={`flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-6 text-gray-500 cursor-pointer transition duration-200
-          ${isDragging ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-blue-400 hover:bg-blue-50'}
-        `}
+        className={`flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-6 text-gray-500 cursor-pointer transition duration-200 ${
+          isDragging ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-blue-400 hover:bg-blue-50'
+        }`}
         onClick={() => fileInputRef.current.click()}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -64,7 +99,7 @@ const ImageUpload = () => {
       >
         <CloudArrowUpIcon className="h-10 w-10 text-blue-400 mb-2" />
         <p className="font-semibold">
-          Click or drag image to upload
+          {uploading ? 'Uploading...' : 'Click or drag image to upload'}
         </p>
       </div>
 
@@ -80,6 +115,10 @@ const ImageUpload = () => {
           </button>
         </div>
       )}
+
+      {/* {cloudinaryUrl && (
+        <p className="text-sm text-green-600 mt-2 break-all">Uploaded URL: {cloudinaryUrl}</p>
+      )} */}
     </div>
   );
 };

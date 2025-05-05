@@ -3,6 +3,7 @@ import mongoose from 'mongoose'
 import cookieParser from 'cookie-parser'
 import cors from 'cors'
 import router from './routes/authRouter.js'
+import productsRouter from './routes/productsRouter.js'
 
 mongoose.connect('mongodb+srv://ecommerce:ecommerce@ecommerce-cluster.lh4q4w9.mongodb.net/')
 .then(console.log('MongoDB Connected Successfully'))
@@ -24,6 +25,7 @@ app.use(cors({
 app.use(cookieParser())
 app.use(express.json());
 app.use('/api/auth',router)
+app.use('/api/admin/products',productsRouter)
 app.listen(port,()=>{
     console.log(`Server is running on port:${port}`)
 })
