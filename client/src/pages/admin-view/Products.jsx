@@ -2,17 +2,20 @@ import React, { useEffect, useState } from 'react';
 import { PlusIcon } from '@heroicons/react/24/outline';
 import ImageUpload from '@/components/admin-view/ImageUpload';
 import { useDispatch, useSelector } from 'react-redux';
-import { addProduct, fetchAllProducts } from '@/store/ProductSlice';
+import { addProduct, deleteProduct, editProduct, fetchAllProducts } from '@/store/ProductSlice';
 import toast from 'react-hot-toast';
+import AdminProductCard from '@/components/admin-view/AdminProductCard'; // Assuming you have the AdminProductCard component
+import { Edit } from 'lucide-react';
 
 const Products = () => {
-  const {productList}=useSelector(state=>state.adminProducts)
-  const dispatch=useDispatch()
+  const { productList } = useSelector(state => state.adminProducts);
+  const dispatch = useDispatch();
   const [showSheet, setShowSheet] = useState(false);
   const [resetImageUpload, setResetImageUpload] = useState(false);
-
+  const [editMode,setEditMode]=useState(false)
 
   const [formData, setFormData] = useState({
+    id:'',
     title: '',
     description: '',
     category: '',
@@ -35,45 +38,52 @@ const Products = () => {
     }));
   };
 
- 
-
-const handleSubmit = (e) => {
-  e.preventDefault();
-
-  dispatch(addProduct({
-    ...formData,
-    image: formData.imageUrl,
-  })).then((data) => {
-    if (data?.payload?.success) {
-      dispatch(fetchAllProducts());
-
-      // Reset the form
-      setFormData({
-        title: '',
-        description: '',
-        category: '',
-        brand: '',
-        price: '',
-        salePrice: '',
-        stock: '',
-        imageUrl: '',
-      });
-
-      setResetImageUpload(true);  
-      setShowSheet(false);
-
-      // Show success toast
-      toast.success("Product added successfully!");
-    }
-  });
-};
-
-
-  useEffect(()=>{
-    dispatch(fetchAllProducts())
-  },[dispatch])
+  const handleSubmit = (e) => {
+    e.preventDefault();
   
- console.log(productList,'productlist')
+    const data = {
+      ...formData,
+      image: formData.imageUrl,
+    };
+  
+    if (editMode) {
+      dispatch(editProduct({ id: formData.id, formdata: data }))
+      .then((res) => {
+        if (res?.payload?.success) {
+          toast.success("Product updated successfully!");
+          dispatch(fetchAllProducts());
+        }
+      });
+    } else {
+      dispatch(addProduct(data)).then((res) => {
+        if (res?.payload?.success) {
+          toast.success("Product added successfully!");
+          dispatch(fetchAllProducts());
+        }
+      });
+    }
+  
+    // Reset form
+    setFormData({
+      title: '',
+      description: '',
+      category: '',
+      brand: '',
+      price: '',
+      salePrice: '',
+      stock: '',
+      imageUrl: '',
+    });
+    setResetImageUpload(true);
+    setEditMode(false);
+    setShowSheet(false);
+  };
+  
+
+  useEffect(() => {
+    dispatch(fetchAllProducts());
+  }, [dispatch]);
+
   return (
     <div className="relative bg-white p-6 rounded-lg shadow-md overflow-hidden">
       <div className="flex justify-between items-center mb-6">
@@ -86,8 +96,47 @@ const handleSubmit = (e) => {
           Add New Product
         </button>
       </div>
-      <p className="text-lg text-gray-600">Add, edit, or remove products from your store.</p>
+      <p className="text-lg text-gray-600 mb-6">Add, edit, or remove products from your store.</p>
 
+      {/* Product Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-6">
+        {productList && productList.map((product) => (
+          <AdminProductCard
+            key={product._id}
+            product={product}
+            onEdit={(product) => {
+              setFormData({
+                id:product._id,
+                title: product.title || '',
+                description: product.description || '',
+                category: product.category || '',
+                brand: product.brand || '',
+                price: product.price || '',
+                salePrice: product.salePrice || '',
+                stock: product.stock || '',
+                imageUrl: product.image || '',
+              });
+              setShowSheet(true);
+              setEditMode(true);
+            }}
+            onDelete={(id) => {
+              if (window.confirm("Are you sure you want to delete this product?")) {
+                dispatch(deleteProduct(id)).then((res) => {
+                  if (res?.payload?.success) {
+                    toast.success("Product deleted successfully!");
+                    dispatch(fetchAllProducts());
+                  } else {
+                    toast.error("Failed to delete product.");
+                  }
+                });
+              }
+            }}
+            
+          />
+        ))}
+      </div>
+
+      {/* Form Modal */}
       {showSheet && (
         <div
           className="fixed inset-0 backdrop-blur-sm z-40 cursor-pointer"
@@ -102,7 +151,7 @@ const handleSubmit = (e) => {
       >
         <form onSubmit={handleSubmit} className="p-6 space-y-6 overflow-y-auto h-[calc(100vh-4rem)]">
           <div className="p-6 flex justify-between items-center border-b">
-            <h2 className="text-xl font-bold">Add Product</h2>
+            <h2 className="text-3xl font-bold">{editMode?'Edit Product':'Add Product'}</h2>
             <button
               onClick={toggleSheet}
               type="button"
@@ -119,7 +168,6 @@ const handleSubmit = (e) => {
             }}
             reset={resetImageUpload}
           />
-
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
@@ -218,7 +266,7 @@ const handleSubmit = (e) => {
               type="submit"
               className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded cursor-pointer"
             >
-              Submit Product
+              {editMode?'Edit Product':'Add Product'}
             </button>
           </div>
         </form>

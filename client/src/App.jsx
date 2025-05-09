@@ -39,6 +39,7 @@ function App() {
       <Toaster position="top-right" reverseOrder={false} />
       
         <Routes>
+     
         <Route path="*" element={<PageNotFound />} />
           {/* Auth routes */}
           <Route path="/auth" element={

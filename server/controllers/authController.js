@@ -7,7 +7,7 @@ export const registerUser=async (req,res)=>{
     const {name,email,password}=req.body
     const checkUser=await User.findOne({email})
    
-    try{
+    try{    
         if(checkUser){
             return res.status(400).json({
                 success:false,

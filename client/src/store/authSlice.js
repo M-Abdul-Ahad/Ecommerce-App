@@ -7,15 +7,10 @@ const initialState={
     user:null
 }
 
-export const registerUser=createAsyncThunk('auth/register',async (formData,{ rejectWithValue })=>{
-    try{
+export const registerUser=createAsyncThunk('auth/register',async (formData)=>{
     const response=await axios.post('http://localhost:5000/api/auth/register',formData,{withCredentials:true})
     return response.data
-    }
-    catch (error) {
-        // catch HTTP errors
-        return rejectWithValue(error.response.data); 
-      }
+   
 })
 
 export const loginUser = createAsyncThunk('auth/login', async (formData, { rejectWithValue }) => {
@@ -37,6 +32,12 @@ export const checkAuth=createAsyncThunk('/auth/checkauth',async ()=>{
         }
     })
     return response.data
+})
+
+export const logoutUser=createAsyncThunk('auth/logout',async ()=>{
+    const response=await axios.post('http://localhost:5000/api/auth/logout',{},{withCredentials:true})
+    return response.data
+   
 })
 
 
@@ -87,6 +88,11 @@ const AuthSlice=createSlice({
         .addCase(checkAuth.rejected,(state)=>{
             state.isLoading=false,
             state.user=null
+            state.isAuthenticated=false
+        })
+        .addCase(logoutUser.fulfilled,(state)=>{
+            state.isLoading=false,
+            state.user= null
             state.isAuthenticated=false
         })
     }
