@@ -1,16 +1,12 @@
-// src/components/Shopping/ShoppingLayout.jsx
 import React from 'react';
 import { Outlet } from 'react-router-dom';
-import Header from './Header';  // Import Header component
+import Header from './Header';
 
 const ShoppingLayout = () => {
   return (
-    <div>
-      {/* Header */}
+    <div className="min-h-screen flex flex-col w-full bg-white">
       <Header />
-
-      {/* Main content area where child components will render */}
-      <main className="mt-8">
+      <main className="flex-1 bg-gray-50 p-4 w-full">
         <Outlet />
       </main>
     </div>

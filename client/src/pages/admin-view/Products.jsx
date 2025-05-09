@@ -202,10 +202,11 @@ const Products = () => {
               className="w-full border border-gray-300 rounded px-3 py-2 bg-white"
             >
               <option value="">Select a category</option>
-              <option value="electronics">Electronics</option>
-              <option value="fashion">Fashion</option>
-              <option value="books">Books</option>
-              <option value="home">Home</option>
+              <option value="kids">Kids</option>
+              <option value="men">Men</option>
+              <option value="women">Women</option>
+              <option value="accessories">Accessories</option>
+              <option value="footwear">Footwear</option>
             </select>
           </div>
 
@@ -219,9 +220,11 @@ const Products = () => {
             >
               <option value="">Select a brand</option>
               <option value="nike">Nike</option>
-              <option value="apple">Apple</option>
-              <option value="samsung">Samsung</option>
-              <option value="sony">Sony</option>
+              <option value="adidas">Adidas</option>
+              <option value="puma">Puma</option>
+              <option value="levi">Levi's</option>
+              <option value="zara">Zara</option>
+              <option value="h&m">H&M</option>
             </select>
           </div>
 
