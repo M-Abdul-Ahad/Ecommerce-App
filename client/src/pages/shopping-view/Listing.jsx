@@ -1,7 +1,11 @@
 import { fetchAllShoppingProducts } from '@/store/shoppingProductsSlice';
+import { fetchCartItmes, addToCart } from '@/store/cartSlice';
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
+import ProductDetailsDialog from '@/components/shopping-view/ProductDetailsDialog';
+
 
 const filterOptions = {
   category: [
@@ -32,17 +36,38 @@ const Listing = () => {
   const [selectedSort, setSelectedSort] = useState(sortOptions[0].id);
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [selectedBrands, setSelectedBrands] = useState([]);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const user = useSelector((state) => state.auth.user);
+
+
   const { productList } = useSelector((state) => state.shoppingProducts);
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
   useEffect(() => {
-    dispatch(fetchAllShoppingProducts());
-  }, [dispatch]);
+  dispatch(fetchAllShoppingProducts());
+  const userId = user?.id;
+  if (userId) {
+    dispatch(fetchCartItmes({ userId }))
+  }
+}, [dispatch, user]);
+
+
 
   const handleAddToCart = (product) => {
-    console.log('Add to cart:', product);
-  };
+  const userId = user?.id
+
+  dispatch(addToCart({
+    userId,
+    productId: product._id,
+    quantity: 1,
+  })).then(() => {
+    dispatch(fetchCartItmes({ userId }))
+    toast.success('Item Added to Cart!')
+  });
+};
+
 
   const handleCategoryChange = (categoryId) => {
     setSelectedCategories((prev) =>
@@ -68,6 +93,21 @@ const Listing = () => {
       selectedBrands.length === 0 ||
       selectedBrands.includes(product.brand?.toLowerCase());
     return matchesCategory && matchesBrand;
+  });
+
+  const sortedProducts = [...filteredProducts].sort((a, b) => {
+    switch (selectedSort) {
+      case 'price-lowtohigh':
+        return (a.salePrice || a.price) - (b.salePrice || b.price);
+      case 'price-hightolow':
+        return (b.salePrice || b.price) - (a.salePrice || a.price);
+      case 'title-atoz':
+        return a.title.localeCompare(b.title);
+      case 'title-ztoa':
+        return b.title.localeCompare(a.title);
+      default:
+        return 0;
+    }
   });
 
   return (
@@ -119,6 +159,7 @@ const Listing = () => {
 
       {/* Main Content */}
       <main className="flex-1 p-6">
+        <div className="mb-6">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-2xl font-bold text-gray-800 ml-4">
             Shop Our Best Sellers
@@ -135,41 +176,64 @@ const Listing = () => {
             ))}
           </select>
         </div>
+         <hr className="mt-4 border-gray-300" />
+        </div>
 
         {/* Products Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
           {filteredProducts.length === 0 ? (
             <p className="text-gray-500 col-span-full text-center">No products available.</p>
           ) : (
-            filteredProducts.map((product) => (
+            sortedProducts.map((product) => (
               <div
-                key={product.id}
-                className="bg-white p-4 rounded-lg [box-shadow:0_10px_20px_rgba(0,0,0,0.2),0_6px_6px_rgba(0,0,0,0.19)] transition-transform duration-300 transform hover:scale-105 hover:-translate-y-1 flex flex-col justify-between mb-6"
+                key={product._id}
+                className="bg-white p-4 rounded-lg shadow-md relative transition-transform duration-300 transform hover:scale-105 hover:-translate-y-1 flex flex-col justify-between mb-6"
               >
-                <div>
+                {/* Sale Badge */}
+                {product.salePrice > 0 && product.salePrice < product.price && (
+                  <span className="absolute top-2 right-2 bg-red-500 text-white text-[10px] font-semibold px-1.5 py-0.5 rounded-sm shadow-sm">
+                    SALE
+                  </span>
+                )}
+
+                <div className="relative">
                   <img
                     src={product.image || 'https://via.placeholder.com/200'}
                     alt={product.title}
-                    className="w-full h-50 object-cover rounded mb-3"
+                    className="w-full h-48 object-cover rounded mb-3"
                   />
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h4 className="font-semibold text-gray-800">{product.title}</h4>
-                      <p className="text-sm text-gray-500">{product.brand}</p>
-                    </div>
-                    <p className="text-blue-600 font-bold">${product.price}</p>
+                </div>
+
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h4 className="font-semibold text-gray-800">{product.title}</h4>
+                    <p className="text-sm text-gray-500">{product.brand}</p>
+                  </div>
+                  <div className="text-right">
+                    {product.salePrice > 0 && product.salePrice < product.price ? (
+                      <>
+                        <p className="text-gray-400 line-through text-sm">${product.price}</p>
+                        <p className="text-green-600 font-bold">${product.salePrice}</p>
+                      </>
+                    ) : (
+                      <p className="text-blue-600 font-bold">${product.price}</p>
+                    )}
                   </div>
                 </div>
+
                 <div className="mt-4 space-y-2">
                   <button
-                    onClick={() => navigate(`/shop/product/${product.id}`)}
-                    className="w-full text-center bg-blue-500 text-white py-1 rounded hover:bg-blue-600 transition"
+                    onClick={() => {
+                      setSelectedProduct(product);
+                      setIsDialogOpen(true);
+                    }}
+                    className="w-full text-center bg-blue-500 text-white py-1 rounded hover:bg-blue-600 transition cursor-pointer"
                   >
                     See Details
                   </button>
                   <button
                     onClick={() => handleAddToCart(product)}
-                    className="w-full text-center bg-gray-200 hover:bg-gray-300 py-1 rounded transition"
+                    className="w-full text-center bg-gray-200 hover:bg-gray-300 py-1 rounded transition cursor-pointer"
                   >
                     Add to Cart
                   </button>
@@ -178,6 +242,14 @@ const Listing = () => {
             ))
           )}
         </div>
+
+        <ProductDetailsDialog
+          isOpen={isDialogOpen}
+          onClose={() => setIsDialogOpen(false)}
+          product={selectedProduct}
+          onAddToCart={handleAddToCart}
+        />
+
       </main>
     </div>
   );

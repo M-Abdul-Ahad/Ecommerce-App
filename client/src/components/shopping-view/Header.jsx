@@ -14,11 +14,14 @@ import {
 } from '@heroicons/react/24/outline';
 import { useDispatch, useSelector } from 'react-redux';
 import { logoutUser } from '@/store/authSlice';
+import CartDrawer from './cartDrawer';
+
 
 const Header = () => {
   const { user } = useSelector((state) => state.auth);
   const [menuOpen, setMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [isCartOpen, setIsCartOpen] = useState(false);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -79,9 +82,14 @@ const Header = () => {
 
         {/* Right Side */}
         <div className="flex items-center space-x-4">
-          <Link to="/cart" className="text-gray-700 hover:text-blue-600 relative">
+          <Link
+            to="#"
+            onClick={() => setIsCartOpen(true)}
+            className="text-gray-700 hover:text-blue-600 relative"
+          >
             <ShoppingCartIcon className="w-6 h-6" />
           </Link>
+
 
           {/* Avatar with dropdown */}
           <div className="relative" ref={dropdownRef}>
@@ -167,7 +175,15 @@ const Header = () => {
           </div>
         </>
       )}
+     <CartDrawer
+        isOpen={isCartOpen}
+        onClose={() => setIsCartOpen(false)}
+        userId={user?.id}
+      />
+
+
     </header>
+    
   );
 };
 

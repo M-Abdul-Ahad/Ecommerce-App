@@ -44,6 +44,7 @@ const Products = () => {
     const data = {
       ...formData,
       image: formData.imageUrl,
+      totalStock: Number(formData.stock),
     };
   
     if (editMode) {

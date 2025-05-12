@@ -26,6 +26,7 @@ export const addProduct=async (req,res)=>{
             image, title, description, category, brand, price, salePrice, totalStock
         })
         await newProduct.save()
+
         res.status(200).json({
             success: true,
             message: 'Product added Successfully!',
