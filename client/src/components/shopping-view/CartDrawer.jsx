@@ -37,9 +37,11 @@ const CartDrawer = ({ isOpen, onClose, userId }) => {
 
 
  const totalPrice = cartItems.reduce((total, item) => {
-  const price = item.productId?.price || 0; 
-  const quantity = item.quantity || 0; 
-  return total + price * quantity;
+  const price = item.productId?.price || 0;
+  const salePrice = item.productId?.salePrice || 0;
+  const finalPrice = salePrice > 0 && salePrice < price ? salePrice : price;
+  const quantity = item.quantity || 0;
+  return total + finalPrice * quantity;
 }, 0);
 
   if (!isOpen) return null;
@@ -78,11 +80,15 @@ const CartDrawer = ({ isOpen, onClose, userId }) => {
                   <h3 className="font-semibold text-gray-800">{item.productId?.name}</h3>
                   <p className="text-sm text-gray-500">Qty: {item.quantity}</p>
                   <p className="text-sm font-medium text-gray-700">
-                    ${item.productId?.price || 0} × {item.quantity} = $
-                    {(item.productId?.price || 0) * item.quantity}
+                    {(() => {
+                      const price = item.productId?.price || 0;
+                      const salePrice = item.productId?.salePrice || 0;
+                      const finalPrice = salePrice > 0 && salePrice < price ? salePrice : price;
+                      return `$${finalPrice} × ${item.quantity} = $${(finalPrice * item.quantity).toFixed(2)}`;
+                    })()}
                   </p>
-
                 </div>
+
                 
                     <div className="flex items-center space-x-3">
                 {/* Decrease Quantity Button (-1, Red) */}

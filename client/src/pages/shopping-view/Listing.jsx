@@ -2,10 +2,9 @@ import { fetchAllShoppingProducts } from '@/store/shoppingProductsSlice';
 import { fetchCartItmes, addToCart } from '@/store/cartSlice';
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import ProductDetailsDialog from '@/components/shopping-view/ProductDetailsDialog';
-
 
 const filterOptions = {
   category: [
@@ -40,49 +39,70 @@ const Listing = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const user = useSelector((state) => state.auth.user);
 
-
   const { productList } = useSelector((state) => state.shoppingProducts);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
-  dispatch(fetchAllShoppingProducts());
-  const userId = user?.id;
-  if (userId) {
-    dispatch(fetchCartItmes({ userId }))
-  }
-}, [dispatch, user]);
+    dispatch(fetchAllShoppingProducts());
+    const userId = user?.id;
+    if (userId) {
+      dispatch(fetchCartItmes({ userId }));
+    }
 
+    // Read filters from the URL on page load
+    const urlParams = new URLSearchParams(location.search);
+    const urlCategories = urlParams.getAll('category');
+    const urlBrands = urlParams.getAll('brand');
+    const urlSort = urlParams.get('sort') || selectedSort;
 
+    setSelectedCategories(urlCategories);
+    setSelectedBrands(urlBrands);
+    setSelectedSort(urlSort);
+  }, [dispatch, user, location.search]);
 
   const handleAddToCart = (product) => {
-  const userId = user?.id
-
-  dispatch(addToCart({
-    userId,
-    productId: product._id,
-    quantity: 1,
-  })).then(() => {
-    dispatch(fetchCartItmes({ userId }))
-    toast.success('Item Added to Cart!')
-  });
-};
-
+    const userId = user?.id;
+    dispatch(addToCart({
+      userId,
+      productId: product._id,
+      quantity: 1,
+    })).then(() => {
+      dispatch(fetchCartItmes({ userId }));
+      toast.success('Item Added to Cart!');
+    });
+  };
 
   const handleCategoryChange = (categoryId) => {
-    setSelectedCategories((prev) =>
-      prev.includes(categoryId)
-        ? prev.filter((id) => id !== categoryId)
-        : [...prev, categoryId]
-    );
+    const newCategories = selectedCategories.includes(categoryId)
+      ? selectedCategories.filter((id) => id !== categoryId)
+      : [...selectedCategories, categoryId];
+
+    setSelectedCategories(newCategories);
+    updateUrl(newCategories, selectedBrands); // Don't include sort in the URL
   };
 
   const handleBrandChange = (brandId) => {
-    setSelectedBrands((prev) =>
-      prev.includes(brandId)
-        ? prev.filter((id) => id !== brandId)
-        : [...prev, brandId]
-    );
+    const newBrands = selectedBrands.includes(brandId)
+      ? selectedBrands.filter((id) => id !== brandId)
+      : [...selectedBrands, brandId];
+
+    setSelectedBrands(newBrands);
+    updateUrl(selectedCategories, newBrands); // Don't include sort in the URL
+  };
+
+  const handleSortChange = (sortId) => {
+    setSelectedSort(sortId);
+    // Do not include sort in the URL
+  };
+
+  const updateUrl = (categories, brands) => {
+    const params = new URLSearchParams();
+    categories.forEach((category) => params.append('category', category));
+    brands.forEach((brand) => params.append('brand', brand));
+    // Exclude 'sort' from URL parameters
+    navigate(`?${params.toString()}`, { replace: true });
   };
 
   const filteredProducts = productList.filter((product) => {
@@ -160,23 +180,23 @@ const Listing = () => {
       {/* Main Content */}
       <main className="flex-1 p-6">
         <div className="mb-6">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold text-gray-800 ml-4">
-            Shop Our Best Sellers
-          </h2>
-          <select
-            value={selectedSort}
-            onChange={(e) => setSelectedSort(e.target.value)}
-            className="border border-gray-300 rounded px-3 py-1"
-          >
-            {sortOptions.map((option) => (
-              <option key={option.id} value={option.id}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </div>
-         <hr className="mt-4 border-gray-300" />
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-2xl font-bold text-gray-800 ml-4">
+              Shop Our Best Sellers
+            </h2>
+            <select
+              value={selectedSort}
+              onChange={(e) => handleSortChange(e.target.value)}
+              className="border border-gray-300 rounded px-3 py-1"
+            >
+              {sortOptions.map((option) => (
+                <option key={option.id} value={option.id}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <hr className="mt-4 border-gray-300" />
         </div>
 
         {/* Products Grid */}
@@ -249,7 +269,6 @@ const Listing = () => {
           product={selectedProduct}
           onAddToCart={handleAddToCart}
         />
-
       </main>
     </div>
   );
