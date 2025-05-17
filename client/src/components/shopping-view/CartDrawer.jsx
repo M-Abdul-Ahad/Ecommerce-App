@@ -3,10 +3,12 @@ import { useDispatch, useSelector } from 'react-redux';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 import { fetchCartItmes, deleteFromCart, updateCartItem } from '../../store/cartSlice';
 import toast from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
 
 
 
 const CartDrawer = ({ isOpen, onClose, userId }) => {
+  const navigate=useNavigate()
   const dispatch = useDispatch();
   const { cartItems, isLoading } = useSelector((state) => state.cart);
  
@@ -124,7 +126,10 @@ const CartDrawer = ({ isOpen, onClose, userId }) => {
             <span>${totalPrice}</span>
           </div>
           <button
-            onClick={() => alert('Proceeding to checkout...')}
+            onClick={() => {
+              onClose(); 
+              navigate('/shop/checkout'); 
+            }}
             className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-semibold transition cursor-pointer"
             disabled={cartItems.length === 0}
           >

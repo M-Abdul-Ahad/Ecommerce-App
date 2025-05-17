@@ -5,6 +5,15 @@ const initialState={
     cartItems:[]
 }
 
+export const clearCartFromDB = createAsyncThunk(
+  'cart/clearCartFromDB',
+  async (userId) => {
+    await axios.delete(`http://localhost:5000/api/shop/cart/clear/${userId}`);
+    return userId;
+  }
+);
+
+
 export const addToCart = createAsyncThunk(
   'cart/addToCart',
   async ({ userId, productId, quantity }) => {
@@ -51,7 +60,11 @@ export const updateCartItem = createAsyncThunk(
 const cartSlice=createSlice({
     name:'cart',
     initialState,
-    reducers:{},
+    reducers:{
+      clearCart: (state) => {
+      state.cartItems = [];
+    }
+    },
     extraReducers: (builder) => {
   builder
 
@@ -109,5 +122,5 @@ const cartSlice=createSlice({
 
 })
 
-
+export const { clearCart } = cartSlice.actions;
 export default cartSlice.reducer

@@ -8,11 +8,12 @@ const AddressForm = ({ onSubmit, initialData = {} }) => {
   const userId = useSelector((state) => state.auth.user?.id);
 
   const [form, setForm] = useState({
-    address: initialData.address.address || '',
-    city: initialData.address.city || '',
-    postalCode: initialData.address.postalCode || '',
-    country: initialData.address.country || '',
-  });
+  address: initialData.address?.address || '',
+  city: initialData.address?.city || '',
+  postalCode: initialData.address?.postalCode || '',
+  country: initialData.address?.country || '',
+});
+
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });

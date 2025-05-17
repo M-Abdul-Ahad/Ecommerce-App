@@ -1,7 +1,16 @@
 import Cart from '../models/Cart.js';
 import mongoose from 'mongoose';
 
-
+export const clearUserCart = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    await Cart.deleteMany({ userId });
+    res.status(200).json({ message: 'Cart cleared successfully' });
+  } catch (error) {
+    console.error('[Clear Cart Error]', error);
+    res.status(500).json({ message: 'Failed to clear cart' });
+  }
+};
 
 export const addToCart = async (req, res) => {
     try {

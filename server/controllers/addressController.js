@@ -37,7 +37,7 @@ export const updateAddress = async (req, res) => {
       return res.status(404).json({ message: 'Address not found or unauthorized' });
     }
 
-    res.json({ message: 'Address updated successfully', address: updatedAddress });
+    res.json({ message: 'Address updated successfully', address: updatedAddress,success:true });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Error updating address', error: error.message });
