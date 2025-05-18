@@ -7,6 +7,7 @@ import { fetchAddress } from '../../store/addressSlice';
 import { fetchCartItmes, deleteFromCart, updateCartItem } from '../../store/cartSlice';
 import { createOrder } from '../../store/orderSlice'; // ✅ Import thunk
 import { clearCart,clearCartFromDB } from '../../store/cartSlice';
+import { updateProductStock } from '../../store/shoppingProductsSlice';
 
 
 const Checkout = () => {
@@ -64,40 +65,46 @@ const Checkout = () => {
   };
 
   // ✅ Handle create order
-  const handleCreateOrder = async () => {
-    if (!address || cartItems.length === 0) {
-      toast.error('Address and cart must be present');
-      return;
-    }
+ const handleCreateOrder = async () => {
+  if (!address || cartItems.length === 0) {
+    toast.error('Address and cart must be present');
+    return;
+  }
 
-    const orderPayload = {
-      userId,
-      addressInfo: {
-        address: address.address,
-        
-      },
-      items: cartItems.map((item) => ({
-        productId: item.productId._id,
-        quantity: item.quantity,
-      })),
-      totalAmount: totalPrice,
-      orderStatus: 'Pending',
-      orderId: `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-      paymentMethod: 'COD',
-      paymentStatus: 'Paid',
-    };
-
-    try {
-      await dispatch(createOrder(orderPayload)).unwrap();
-      await dispatch(clearCartFromDB(userId)).unwrap();
-      dispatch(clearCart())
-      toast.success('Order created!');
-      
-    } catch (err) {
-      console.error(err);
-      toast.error('Failed to create order');
-    }
+  const orderPayload = {
+    userId,
+    addressInfo: { address: address.address },
+    items: cartItems.map((item) => ({
+      productId: item.productId._id,
+      quantity: item.quantity,
+    })),
+    totalAmount: totalPrice,
+    orderStatus: 'Pending',
+    orderId: `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+    paymentMethod: 'COD',
+    paymentStatus: 'Paid',
   };
+
+  try {
+    await dispatch(createOrder(orderPayload)).unwrap();
+
+    // ✅ Reduce stock
+    const stockUpdates = cartItems.map(item => ({
+      productId: item.productId._id,
+      quantity: item.quantity,
+    }));
+    await dispatch(updateProductStock(stockUpdates)).unwrap();
+
+    await dispatch(clearCartFromDB(userId)).unwrap();
+    dispatch(clearCart());
+
+    toast.success('Order created!');
+  } catch (err) {
+    console.error(err);
+    toast.error('Failed to create order');
+  }
+};
+
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-8">

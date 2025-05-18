@@ -125,3 +125,4 @@ export const fetchAllProducts=async (req,res)=>{
         });
     }
 }
+

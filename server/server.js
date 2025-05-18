@@ -8,6 +8,7 @@ import shoppingProductsRouter from './routes/shoppingProductsRouter.js'
 import cartRouter from './routes/cartRouter.js'
 import addressRouter from './routes/addressRouter.js'
 import orderRouter from './routes/orderRouter.js'
+import adminOrderRouter from './routes/adminOrdersRouter.js'
 
 mongoose.connect('mongodb+srv://ecommerce:ecommerce@ecommerce-cluster.lh4q4w9.mongodb.net/')
 .then(console.log('MongoDB Connected Successfully'))
@@ -34,6 +35,7 @@ app.use('/api/shop/products',shoppingProductsRouter)
 app.use('/api/shop/cart',cartRouter)
 app.use('/api/shop/address',addressRouter)
 app.use('/api/shop/orders',orderRouter)
+app.use('/api/admin/orders',adminOrderRouter)
 app.listen(port,()=>{
     console.log(`Server is running on port:${port}`)
 })

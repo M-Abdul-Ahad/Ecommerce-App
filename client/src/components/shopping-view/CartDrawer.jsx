@@ -29,13 +29,24 @@ const CartDrawer = ({ isOpen, onClose, userId }) => {
   };
 
   const handleUpdateQuantity = async (productId, newQty) => {
-  const quantity = Math.max(1, newQty); 
+  const quantity = Math.max(1, newQty);
+
+  const item = cartItems.find((item) => item.productId?._id === productId);
+  const totalStock = item?.productId?.totalStock ?? 0;
+
+  if (quantity > totalStock) {
+    toast.error(`Cannot add more than ${totalStock} items.`);
+    return;
+  }
+
   try {
     await dispatch(updateCartItem({ userId, productId, quantity })).unwrap();
   } catch (err) {
     console.error('[UI] Quantity update failed:', err);
+    toast.error('Failed to update quantity');
   }
 };
+
 
 
  const totalPrice = cartItems.reduce((total, item) => {

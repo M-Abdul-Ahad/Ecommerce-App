@@ -242,22 +242,33 @@ const Listing = () => {
                 </div>
 
                 <div className="mt-4 space-y-2">
+                <button
+                  onClick={() => {
+                    setSelectedProduct(product);
+                    setIsDialogOpen(true);
+                  }}
+                  className="w-full text-center bg-blue-500 text-white py-1 rounded hover:bg-blue-600 transition cursor-pointer"
+                >
+                  See Details
+                </button>
+
+                {product.totalStock === 0 ? (
                   <button
-                    onClick={() => {
-                      setSelectedProduct(product);
-                      setIsDialogOpen(true);
-                    }}
-                    className="w-full text-center bg-blue-500 text-white py-1 rounded hover:bg-blue-600 transition cursor-pointer"
+                    disabled
+                    className="w-full text-center bg-red-100 text-red-500 py-1 rounded cursor-not-allowed"
                   >
-                    See Details
+                    Out of Stock
                   </button>
+                ) : (
                   <button
                     onClick={() => handleAddToCart(product)}
                     className="w-full text-center bg-gray-200 hover:bg-gray-300 py-1 rounded transition cursor-pointer"
                   >
                     Add to Cart
                   </button>
-                </div>
+                )}
+              </div>
+
               </div>
             ))
           )}

@@ -23,6 +23,8 @@ export const editProduct=createAsyncThunk('products/editProduct',async ({id,form
     return result?.data
 })
 
+
+
 export const deleteProduct=createAsyncThunk('products/deleteProduct',async (id)=>{
     const result=await axios.delete(`http://localhost:5000/api/admin/products/delete/${id}`)
     return result?.data
@@ -66,6 +68,8 @@ const ProductSlice=createSlice({
         .addCase(deleteProduct.rejected, (state) => {
             state.isLoading = false;
         })
+        
+
         
     }
 })

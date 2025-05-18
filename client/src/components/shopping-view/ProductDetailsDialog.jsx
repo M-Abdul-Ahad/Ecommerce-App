@@ -81,12 +81,21 @@ const ProductDetailsDialog = ({ isOpen, onClose, product, onAddToCart }) => {
             </div>
 
             {/* Add to Cart Button */}
-            <button
-               onClick={() => onAddToCart(product)}
-              className="mt-4 w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
-            >
-              Add to Cart
-            </button>
+           {product.totalStock === 0 ? (
+                    <button
+                      disabled
+                      className="w-full text-center bg-red-100 text-red-500 py-1 rounded cursor-not-allowed"
+                    >
+                      Out of Stock
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => onAddToCart(product)}
+                      className="w-full text-center bg-gray-200 hover:bg-gray-300 py-1 rounded transition cursor-pointer"
+                    >
+                      Add to Cart
+                    </button>
+                  )}
 
             {/* Reviews Section */}
             <div className="mt-6 space-y-4 text-sm text-gray-600">

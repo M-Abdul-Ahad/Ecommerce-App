@@ -23,6 +23,8 @@ const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const { cartItems } = useSelector((state) => state.cart);
+  const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -85,15 +87,19 @@ const Header = () => {
 
         {/* Right Side */}
         <div className="flex items-center space-x-4">
-          <Link
+         <Link
             to="#"
             onClick={() => setIsCartOpen(true)}
             className="text-gray-700 hover:text-blue-600 relative"
           >
             <ShoppingCartIcon className="w-6 h-6" />
+
+            {totalItems > 0 && (
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[8px] font-bold rounded-full px-1.5 shadow">
+                {totalItems > 99 ? '99+' : totalItems}
+              </span>
+            )}
           </Link>
-
-
           {/* Avatar with dropdown */}
           <div className="relative" ref={dropdownRef}>
             <button

@@ -11,6 +11,13 @@ export const fetchAllShoppingProducts=createAsyncThunk('products/fetchAllShoppin
     return result?.data
 })
 
+export const updateProductStock = createAsyncThunk(
+  'products/updateProductStock',
+  async (updates) => {
+    const result = await axios.post('http://localhost:5000/api/shop/products/update-stock', { updates });
+    return result.data;
+  }
+);
 
 
 const ShoppingProductSlice=createSlice({
@@ -30,6 +37,25 @@ const ShoppingProductSlice=createSlice({
             state.isLoading=false
             state.productList=[]
         })
+
+        .addCase(updateProductStock.pending, (state) => {
+  state.isLoading = true;
+})
+.addCase(updateProductStock.fulfilled, (state, action) => {
+  state.isLoading = false;
+
+  // Simplified stock update
+  const updates = action.meta.arg;
+  for (const { productId, quantity } of updates) {
+    const product = state.productList.find(p => p._id === productId);
+    if (product) {
+      product.totalStock -= quantity;
+    }
+  }
+})
+.addCase(updateProductStock.rejected, (state) => {
+  state.isLoading = false;
+});
         
     }
 })

@@ -17,37 +17,14 @@ const categories = [
 ];
 
 const brands = [
-  {
-    id: 'nike',
-    label: 'Nike',
-    icon: <img src="https://upload.wikimedia.org/wikipedia/commons/a/a6/Logo_NIKE.svg" alt="Nike" className="h-10" />,
-  },
-  {
-    id: 'adidas',
-    label: 'Adidas',
-    icon: <img src="https://upload.wikimedia.org/wikipedia/commons/2/20/Adidas_Logo.svg" alt="Adidas" className="h-10" />,
-  },
-  {
-    id: 'puma',
-    label: 'Puma',
-    icon: <img src="https://upload.wikimedia.org/wikipedia/commons/f/fd/Puma_Logo.svg" alt="Puma" className="h-10" />,
-  },
-  {
-    id: 'levi',
-    label: "Levi's",
-    icon: <img src="https://upload.wikimedia.org/wikipedia/commons/6/69/Levi%27s_logo.svg" alt="Levi's" className="h-8" />,
-  },
-  {
-    id: 'zara',
-    label: 'Zara',
-    icon: <img src="https://upload.wikimedia.org/wikipedia/commons/5/5d/Zara_Logo_2019.svg" alt="Zara" className="h-6" />,
-  },
-  {
-    id: 'h&m',
-    label: 'H&M',
-    icon: <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/H%26M-Logo.svg" alt="H&M" className="h-8" />,
-  },
+  { id: 'nike', label: 'Nike' },
+  { id: 'adidas', label: 'Adidas' },
+  { id: 'puma', label: 'Puma' },
+  { id: 'levis', label: "Levi's" },
+  { id: 'zara', label: 'Zara' },
+  { id: 'h&m', label: 'H&M' },
 ];
+
 
 const Home = () => {
   const dispatch = useDispatch();
@@ -113,24 +90,30 @@ const Home = () => {
           </div>
         </div>
 
-        {/* Brands */}
-        <div className="mt-16 text-center">
-          <h2 className="text-2xl font-semibold text-gray-700 mb-10">
-            Shop by Famous Brands
-          </h2>
-          <div className="flex flex-wrap justify-center gap-4">
-            {brands.map((brand) => (
-              <div
-                key={brand.id}
-                onClick={() => handleBrandClick(brand.id)}
-                className="flex flex-col items-center justify-center w-32 h-32 bg-white shadow-md rounded-xl hover:shadow-lg transition-shadow cursor-pointer"
-              >
-                <div className="mb-2">{brand.icon}</div>
-                <span className="text-sm font-medium text-gray-800">{brand.label}</span>
-              </div>
-            ))}
-          </div>
-        </div>
+      {/* Brands */}
+<div className="mt-16 text-center">
+  <h2 className="text-2xl font-semibold text-gray-700 mb-10">
+    Shop by Famous Brands
+  </h2>
+  <div className="flex flex-wrap justify-center gap-6">
+    {brands.map((brand) => (
+      <div
+        key={brand.id}
+        onClick={() => handleBrandClick(brand.id)}
+        className="w-32 h-32 bg-white shadow-md rounded-xl overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+      >
+        <img
+          src={`/brand-logos/${brand.id}.png`}
+          alt={brand.label}
+          className="w-full h-full object-cover"
+        />
+      </div>
+    ))}
+  </div>
+</div>
+
+
+
 
         {/* Featured Products */}
         <div className="mt-20 text-center">
