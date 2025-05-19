@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import ProductDetailsDialog from '@/components/shopping-view/ProductDetailsDialog';
+import SearchBar from '@/components/shopping-view/SearchBar';
 
 const filterOptions = {
   category: [
@@ -37,6 +38,7 @@ const Listing = () => {
   const [selectedBrands, setSelectedBrands] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [searchTerm, setSearchTerm] = useState('');
   const user = useSelector((state) => state.auth.user);
 
   const { productList } = useSelector((state) => state.shoppingProducts);
@@ -45,22 +47,24 @@ const Listing = () => {
   const location = useLocation();
 
   useEffect(() => {
-    dispatch(fetchAllShoppingProducts());
-    const userId = user?.id;
-    if (userId) {
-      dispatch(fetchCartItmes({ userId }));
-    }
+  dispatch(fetchAllShoppingProducts());
+  const userId = user?.id;
+  if (userId) {
+    dispatch(fetchCartItmes({ userId }));
+  }
 
-    // Read filters from the URL on page load
-    const urlParams = new URLSearchParams(location.search);
-    const urlCategories = urlParams.getAll('category');
-    const urlBrands = urlParams.getAll('brand');
-    const urlSort = urlParams.get('sort') || selectedSort;
+  const urlParams = new URLSearchParams(location.search);
+  const urlCategories = urlParams.getAll('category');
+  const urlBrands = urlParams.getAll('brand');
+  const urlSort = urlParams.get('sort') || selectedSort;
+  const urlKeyword = urlParams.get('keyword') || '';
 
-    setSelectedCategories(urlCategories);
-    setSelectedBrands(urlBrands);
-    setSelectedSort(urlSort);
-  }, [dispatch, user, location.search]);
+  setSelectedCategories(urlCategories);
+  setSelectedBrands(urlBrands);
+  setSelectedSort(urlSort);
+  setSearchTerm(urlKeyword);
+}, [dispatch, user, location.search]);
+
 
   const handleAddToCart = (product) => {
     const userId = user?.id;
@@ -97,23 +101,45 @@ const Listing = () => {
     // Do not include sort in the URL
   };
 
-  const updateUrl = (categories, brands) => {
-    const params = new URLSearchParams();
-    categories.forEach((category) => params.append('category', category));
-    brands.forEach((brand) => params.append('brand', brand));
-    // Exclude 'sort' from URL parameters
-    navigate(`?${params.toString()}`, { replace: true });
-  };
+  
+  const updateUrl = (categories, brands, keyword = '') => {
+  const params = new URLSearchParams();
+  categories.forEach((category) => params.append('category', category));
+  brands.forEach((brand) => params.append('brand', brand));
+  if (keyword.trim()) {
+    params.set('keyword', keyword);
+  }
+  navigate(`?${params.toString()}`, { replace: true });
+};
+
+useEffect(() => {
+  const debounce = setTimeout(() => {
+    updateUrl(selectedCategories, selectedBrands, searchTerm);
+  }, 400);
+
+  return () => clearTimeout(debounce);
+}, [searchTerm, selectedCategories, selectedBrands]);
+
 
   const filteredProducts = productList.filter((product) => {
-    const matchesCategory =
-      selectedCategories.length === 0 ||
-      selectedCategories.includes(product.category?.toLowerCase());
-    const matchesBrand =
-      selectedBrands.length === 0 ||
-      selectedBrands.includes(product.brand?.toLowerCase());
-    return matchesCategory && matchesBrand;
-  });
+  const matchesCategory =
+    selectedCategories.length === 0 ||
+    selectedCategories.includes(product.category?.toLowerCase());
+
+  const matchesBrand =
+    selectedBrands.length === 0 ||
+    selectedBrands.includes(product.brand?.toLowerCase());
+
+  const keyword = searchTerm.trim().toLowerCase();
+  const matchesSearch =
+    keyword === '' ||
+    product.title.toLowerCase().includes(keyword) ||
+    product.brand.toLowerCase().includes(keyword) ||
+    product.category.toLowerCase().includes(keyword);
+
+  return matchesCategory && matchesBrand && matchesSearch;
+});
+
 
   const sortedProducts = [...filteredProducts].sort((a, b) => {
     switch (selectedSort) {
@@ -184,6 +210,7 @@ const Listing = () => {
             <h2 className="text-2xl font-bold text-gray-800 ml-4">
               Shop Our Best Sellers
             </h2>
+            <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
             <select
               value={selectedSort}
               onChange={(e) => handleSortChange(e.target.value)}

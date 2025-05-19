@@ -39,8 +39,9 @@ function App() {
       <Toaster position="top-right" reverseOrder={false} />
       
         <Routes>
-     
-        <Route path="*" element={<PageNotFound />} />
+        <Route path="/" element={
+              <CheckAuth isAuthenticated={isAuthenticated} user={user}> </CheckAuth>
+          } />
           {/* Auth routes */}
           <Route path="/auth" element={
             <CheckAuth isAuthenticated={isAuthenticated} user={user}>
@@ -49,6 +50,7 @@ function App() {
           }>
             <Route path="login" element={<Login />} />
             <Route path="register" element={<Register />} />
+            
           </Route>
           {/* Admin Routes */}
           <Route path="/admin" element={
@@ -71,6 +73,7 @@ function App() {
             <Route path="checkout" element={<Checkout/>} />
             <Route path="account" element={<Account />} />
           </Route>
+          <Route path="*" element={<PageNotFound />} />
         </Routes>
       </div>
   )
