@@ -3,8 +3,26 @@ import axios from "axios";
 
 const initialState={
     isLoading:false,
-    productList:[]
+    productList:[],
+    reviewsByProductId: {}
 }
+
+export const fetchReviews = createAsyncThunk(
+  'products/fetchReviews',
+  async (productId) => {
+    const res = await axios.get(`http://localhost:5000/api/shop/products/${productId}/reviews`);
+    return { productId, reviews: res.data };
+  }
+);
+
+export const addReview = createAsyncThunk(
+  'products/addReview',
+  async ({ productId, review }) => {
+    const res = await axios.post(`http://localhost:5000/api/shop/products/${productId}/add-review`, review);
+    return { productId, review: res.data };
+  }
+);
+
 
 export const fetchAllShoppingProducts=createAsyncThunk('products/fetchAllShoppingProducts',async ()=>{
     const result=await axios.get('http://localhost:5000/api/shop/products/fetch-all')
@@ -39,23 +57,43 @@ const ShoppingProductSlice=createSlice({
         })
 
         .addCase(updateProductStock.pending, (state) => {
-  state.isLoading = true;
-})
-.addCase(updateProductStock.fulfilled, (state, action) => {
-  state.isLoading = false;
+          state.isLoading = true;
+        })
+        .addCase(updateProductStock.fulfilled, (state, action) => {
+          state.isLoading = false;
 
-  // Simplified stock update
-  const updates = action.meta.arg;
-  for (const { productId, quantity } of updates) {
-    const product = state.productList.find(p => p._id === productId);
-    if (product) {
-      product.totalStock -= quantity;
-    }
+          // Simplified stock update
+          const updates = action.meta.arg;
+          for (const { productId, quantity } of updates) {
+            const product = state.productList.find(p => p._id === productId);
+            if (product) {
+              product.totalStock -= quantity;
+            }
+          }
+        })
+        .addCase(updateProductStock.rejected, (state) => {
+          state.isLoading = false;
+        })
+
+        .addCase(fetchReviews.pending, (state) => {
+            state.isLoading = true;
+          })
+          .addCase(fetchReviews.fulfilled, (state, action) => {
+            state.isLoading = false;
+            const { productId, reviews } = action.payload;
+            state.reviewsByProductId[productId] = reviews;
+          })
+          .addCase(fetchReviews.rejected, (state) => {
+            state.isLoading = false;
+          })
+
+          .addCase(addReview.fulfilled, (state, action) => {
+  const { productId, review } = action.payload;
+  if (!state.reviewsByProductId[productId]) {
+    state.reviewsByProductId[productId] = [];
   }
+  state.reviewsByProductId[productId].push(review);
 })
-.addCase(updateProductStock.rejected, (state) => {
-  state.isLoading = false;
-});
         
     }
 })
