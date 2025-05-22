@@ -8,7 +8,7 @@ const initialState={
 export const clearCartFromDB = createAsyncThunk(
   'cart/clearCartFromDB',
   async (userId) => {
-    await axios.delete(`http://localhost:5000/api/shop/cart/clear/${userId}`);
+    await axios.delete(`${import.meta.env.VITE_API_URL}/api/shop/cart/clear/${userId}`);
     return userId;
   }
 );
@@ -17,7 +17,7 @@ export const clearCartFromDB = createAsyncThunk(
 export const addToCart = createAsyncThunk(
   'cart/addToCart',
   async ({ userId, productId, quantity }) => {
-      const response = await axios.post('http://localhost:5000/api/shop/cart/add', {
+      const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/shop/cart/add`, {
         userId,
         productId,
         quantity,
@@ -29,7 +29,7 @@ export const addToCart = createAsyncThunk(
 export const fetchCartItmes= createAsyncThunk(
   'cart/fetchCartItems',
   async ({ userId }) => {
-      const response = await axios.get(`http://localhost:5000/api/shop/cart/fetch/${userId}`);
+      const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/shop/cart/fetch/${userId}`);
       return response.data;
     } 
 );
@@ -37,7 +37,7 @@ export const fetchCartItmes= createAsyncThunk(
 export const deleteFromCart= createAsyncThunk(
   'cart/deleteCartItem',
   async ({ userId,productId }) => {
-      const response = await axios.delete(`http://localhost:5000/api/shop/cart/delete/${userId}/${productId}`)
+      const response = await axios.delete(`${import.meta.env.VITE_API_URL}/api/shop/cart/delete/${userId}/${productId}`)
       return response.data;
     } 
 );
@@ -46,7 +46,7 @@ export const deleteFromCart= createAsyncThunk(
 export const updateCartItem = createAsyncThunk(
   'cart/updateCartItem',
   async ({ userId, productId, quantity }) => {
-    const response = await axios.put(`http://localhost:5000/api/shop/cart/update/${productId}`, {
+    const response = await axios.put(`${import.meta.env.VITE_API_URL}/api/shop/cart/update/${productId}`, {
       userId,
       productId,
       quantity

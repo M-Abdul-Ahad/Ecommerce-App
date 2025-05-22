@@ -5,7 +5,7 @@ import axios from 'axios';
 export const fetchAllOrders = createAsyncThunk(
   'adminOrders/fetchAllOrders',
   async () => {
-    const response = await axios.get('http://localhost:5000/api/admin/orders/get');
+    const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/admin/orders/get`);
     return response.data; // expected to be an array of orders
   }
 );
@@ -14,7 +14,7 @@ export const updateOrderStatus = createAsyncThunk(
   'adminOrders/updateOrderStatus',
   async ({ orderId, status }) => {
     console.log(orderId,status)
-    const response = await axios.put(`http://localhost:5000/api/admin/orders/update-status/${orderId}`, {
+    const response = await axios.put(`${import.meta.env.VITE_API_URL}/api/admin/orders/update-status/${orderId}`, {
         orderId,
         status
     });

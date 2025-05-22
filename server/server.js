@@ -9,14 +9,17 @@ import cartRouter from './routes/cartRouter.js'
 import addressRouter from './routes/addressRouter.js'
 import orderRouter from './routes/orderRouter.js'
 import adminOrderRouter from './routes/adminOrdersRouter.js'
+import dotenv from 'dotenv';
+dotenv.config();
 
-mongoose.connect('mongodb+srv://ecommerce:ecommerce@ecommerce-cluster.lh4q4w9.mongodb.net/')
+
+mongoose.connect(process.env.MONGO_URL)
 .then(console.log('MongoDB Connected Successfully'))
 .catch((err)=>{console.log('error in connecting Database',err)})
 const app=express()
 const port=process.env.PORT || 5000;
 app.use(cors({
-    origin:'http://localhost:5173',
+    origin:process.env.CLIENT_BASE_URL,
     methods:['GET','POST','PUT','DELETE'],
     allowedHeaders:[
         "Content-Type",

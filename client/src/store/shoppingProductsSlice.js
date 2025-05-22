@@ -10,7 +10,7 @@ const initialState={
 export const fetchReviews = createAsyncThunk(
   'products/fetchReviews',
   async (productId) => {
-    const res = await axios.get(`http://localhost:5000/api/shop/products/${productId}/reviews`);
+    const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/shop/products/${productId}/reviews`);
     return { productId, reviews: res.data };
   }
 );
@@ -18,7 +18,7 @@ export const fetchReviews = createAsyncThunk(
 export const addReview = createAsyncThunk(
   'products/addReview',
   async ({ productId, review }) => {
-    const res = await axios.post(`http://localhost:5000/api/shop/products/${productId}/add-review`, review);
+    const res = await axios.post(`${import.meta.env.VITE_API_URL}/api/shop/products/${productId}/add-review`, review);
     return { productId, review: res.data };
   }
 );
@@ -26,7 +26,7 @@ export const addReview = createAsyncThunk(
 export const deleteReviewByName = createAsyncThunk(
   'products/deleteReviewByName',
   async ({ productId, name, comment, createdAt }) => {
-    await axios.delete('http://localhost:5000/api/shop/products/delete-review', {
+    await axios.delete(`${import.meta.env.VITE_API_URL}/api/shop/products/delete-review`, {
       data: { productId, name, comment, createdAt }
     });
     return { productId, name, comment, createdAt };
@@ -36,14 +36,14 @@ export const deleteReviewByName = createAsyncThunk(
 
 
 export const fetchAllShoppingProducts=createAsyncThunk('products/fetchAllShoppingProducts',async ()=>{
-    const result=await axios.get('http://localhost:5000/api/shop/products/fetch-all')
+    const result=await axios.get(`${import.meta.env.VITE_API_URL}/api/shop/products/fetch-all`)
     return result?.data
 })
 
 export const updateProductStock = createAsyncThunk(
   'products/updateProductStock',
   async (updates) => {
-    const result = await axios.post('http://localhost:5000/api/shop/products/update-stock', { updates });
+    const result = await axios.post(`${import.meta.env.VITE_API_URL}/api/shop/products/update-stock`, { updates });
     return result.data;
   }
 );
