@@ -91,26 +91,26 @@ const Home = () => {
         </div>
 
       {/* Brands */}
-<div className="mt-16 text-center">
-  <h2 className="text-2xl font-semibold text-gray-700 mb-10">
-    Shop by Famous Brands
-  </h2>
-  <div className="flex flex-wrap justify-center gap-6">
-    {brands.map((brand) => (
-      <div
-        key={brand.id}
-        onClick={() => handleBrandClick(brand.id)}
-        className="w-32 h-32 bg-white shadow-md rounded-xl overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
-      >
-        <img
-          src={`/brand-logos/${brand.id}.png`}
-          alt={brand.label}
-          className="w-full h-full object-cover"
-        />
+      <div className="mt-16 text-center">
+        <h2 className="text-2xl font-semibold text-gray-700 mb-10">
+          Shop by Famous Brands
+        </h2>
+        <div className="flex flex-wrap justify-center gap-6">
+          {brands.map((brand) => (
+            <div
+              key={brand.id}
+              onClick={() => handleBrandClick(brand.id)}
+              className="w-32 h-32 bg-white shadow-md rounded-xl overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+            >
+              <img
+                src={`/brand-logos/${brand.id}.png`}
+                alt={brand.label}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          ))}
+        </div>
       </div>
-    ))}
-  </div>
-</div>
 
 
 
@@ -129,17 +129,17 @@ const Home = () => {
                   key={product._id}
                   className="bg-white p-4 rounded-lg shadow-md relative transition-transform duration-300 transform hover:scale-105 hover:-translate-y-1 flex flex-col justify-between mb-6"
                 >
-                  {product.salePrice > 0 && product.salePrice < product.price && (
-                    <span className="absolute top-2 right-2 bg-red-500 text-white text-[10px] font-semibold px-1.5 py-0.5 rounded-sm shadow-sm">
-                      SALE
-                    </span>
-                  )}
-
                   <div className="relative">
+                    {product.salePrice > 0 && product.salePrice < product.price && (
+                      <span className="absolute top-2 right-2 bg-red-500 text-white text-[10px] font-semibold px-1.5 py-0.5 rounded-sm shadow-sm z-10">
+                        SALE
+                      </span>
+                    )}
+
                     <img
                       src={product.image || 'https://via.placeholder.com/200'}
                       alt={product.title}
-                      className="w-full h-48 object-cover rounded mb-3"
+                      className="w-full h-48 object-contain rounded mb-3"
                     />
                   </div>
 

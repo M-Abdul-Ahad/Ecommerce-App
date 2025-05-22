@@ -32,13 +32,17 @@ const sortOptions = [
   { id: 'title-ztoa', label: 'Title: Z to A' },
 ];
 
+const ITEMS_PER_PAGE = 16;
+
 const Listing = () => {
   const [selectedSort, setSelectedSort] = useState(sortOptions[0].id);
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [selectedBrands, setSelectedBrands] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-    const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+
   const user = useSelector((state) => state.auth.user);
 
   const { productList } = useSelector((state) => state.shoppingProducts);
@@ -47,32 +51,35 @@ const Listing = () => {
   const location = useLocation();
 
   useEffect(() => {
-  dispatch(fetchAllShoppingProducts());
-  const userId = user?.id;
-  if (userId) {
-    dispatch(fetchCartItmes({ userId }));
-  }
+    dispatch(fetchAllShoppingProducts());
+    const userId = user?.id;
+    if (userId) {
+      dispatch(fetchCartItmes({ userId }));
+    }
 
-  const urlParams = new URLSearchParams(location.search);
-  const urlCategories = urlParams.getAll('category');
-  const urlBrands = urlParams.getAll('brand');
-  const urlSort = urlParams.get('sort') || selectedSort;
-  const urlKeyword = urlParams.get('keyword') || '';
+    const urlParams = new URLSearchParams(location.search);
+    const urlCategories = urlParams.getAll('category');
+    const urlBrands = urlParams.getAll('brand');
+    const urlSort = urlParams.get('sort') || selectedSort;
+    const urlKeyword = urlParams.get('keyword') || '';
 
-  setSelectedCategories(urlCategories);
-  setSelectedBrands(urlBrands);
-  setSelectedSort(urlSort);
-  setSearchTerm(urlKeyword);
-}, [dispatch, user, location.search]);
+    setSelectedCategories(urlCategories);
+    setSelectedBrands(urlBrands);
+    setSelectedSort(urlSort);
+    setSearchTerm(urlKeyword);
 
+    setCurrentPage(1); // Reset page when URL params change
+  }, [dispatch, user, location.search]);
 
   const handleAddToCart = (product) => {
     const userId = user?.id;
-    dispatch(addToCart({
-      userId,
-      productId: product._id,
-      quantity: 1,
-    })).then(() => {
+    dispatch(
+      addToCart({
+        userId,
+        productId: product._id,
+        quantity: 1,
+      })
+    ).then(() => {
       dispatch(fetchCartItmes({ userId }));
       toast.success('Item Added to Cart!');
     });
@@ -84,7 +91,8 @@ const Listing = () => {
       : [...selectedCategories, categoryId];
 
     setSelectedCategories(newCategories);
-    updateUrl(newCategories, selectedBrands); // Don't include sort in the URL
+    updateUrl(newCategories, selectedBrands);
+    setCurrentPage(1); // Reset page on filter change
   };
 
   const handleBrandChange = (brandId) => {
@@ -93,53 +101,52 @@ const Listing = () => {
       : [...selectedBrands, brandId];
 
     setSelectedBrands(newBrands);
-    updateUrl(selectedCategories, newBrands); // Don't include sort in the URL
+    updateUrl(selectedCategories, newBrands);
+    setCurrentPage(1); // Reset page on filter change
   };
 
   const handleSortChange = (sortId) => {
     setSelectedSort(sortId);
-    // Do not include sort in the URL
+    setCurrentPage(1); // Reset page on sort change
   };
 
-  
   const updateUrl = (categories, brands, keyword = '') => {
-  const params = new URLSearchParams();
-  categories.forEach((category) => params.append('category', category));
-  brands.forEach((brand) => params.append('brand', brand));
-  if (keyword.trim()) {
-    params.set('keyword', keyword);
-  }
-  navigate(`?${params.toString()}`, { replace: true });
-};
+    const params = new URLSearchParams();
+    categories.forEach((category) => params.append('category', category));
+    brands.forEach((brand) => params.append('brand', brand));
+    if (keyword.trim()) {
+      params.set('keyword', keyword);
+    }
+    navigate(`?${params.toString()}`, { replace: true });
+  };
 
-useEffect(() => {
-  const debounce = setTimeout(() => {
-    updateUrl(selectedCategories, selectedBrands, searchTerm);
-  }, 400);
+  useEffect(() => {
+    const debounce = setTimeout(() => {
+      updateUrl(selectedCategories, selectedBrands, searchTerm);
+      setCurrentPage(1); // Reset page on search term change
+    }, 400);
 
-  return () => clearTimeout(debounce);
-}, [searchTerm, selectedCategories, selectedBrands]);
-
+    return () => clearTimeout(debounce);
+  }, [searchTerm, selectedCategories, selectedBrands]);
 
   const filteredProducts = productList.filter((product) => {
-  const matchesCategory =
-    selectedCategories.length === 0 ||
-    selectedCategories.includes(product.category?.toLowerCase());
+    const matchesCategory =
+      selectedCategories.length === 0 ||
+      selectedCategories.includes(product.category?.toLowerCase());
 
-  const matchesBrand =
-    selectedBrands.length === 0 ||
-    selectedBrands.includes(product.brand?.toLowerCase());
+    const matchesBrand =
+      selectedBrands.length === 0 ||
+      selectedBrands.includes(product.brand?.toLowerCase());
 
-  const keyword = searchTerm.trim().toLowerCase();
-  const matchesSearch =
-    keyword === '' ||
-    product.title.toLowerCase().includes(keyword) ||
-    product.brand.toLowerCase().includes(keyword) ||
-    product.category.toLowerCase().includes(keyword);
+    const keyword = searchTerm.trim().toLowerCase();
+    const matchesSearch =
+      keyword === '' ||
+      product.title.toLowerCase().includes(keyword) ||
+      product.brand.toLowerCase().includes(keyword) ||
+      product.category.toLowerCase().includes(keyword);
 
-  return matchesCategory && matchesBrand && matchesSearch;
-});
-
+    return matchesCategory && matchesBrand && matchesSearch;
+  });
 
   const sortedProducts = [...filteredProducts].sort((a, b) => {
     switch (selectedSort) {
@@ -155,6 +162,14 @@ useEffect(() => {
         return 0;
     }
   });
+
+  // Pagination Logic
+  const totalPages = Math.ceil(sortedProducts.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const paginatedProducts = sortedProducts.slice(
+    startIndex,
+    startIndex + ITEMS_PER_PAGE
+  );
 
   return (
     <div className="flex w-full min-h-screen bg-gray-50">
@@ -204,7 +219,7 @@ useEffect(() => {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 p-6">
+      <main className="flex-1 p-6 flex flex-col">
         <div className="mb-6">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-2xl font-bold text-gray-800 ml-4">
@@ -227,27 +242,29 @@ useEffect(() => {
         </div>
 
         {/* Products Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-          {filteredProducts.length === 0 ? (
-            <p className="text-gray-500 col-span-full text-center">No products available.</p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 flex-grow">
+          {paginatedProducts.length === 0 ? (
+            <p className="text-gray-500 col-span-full text-center">
+              No products available.
+            </p>
           ) : (
-            sortedProducts.map((product) => (
+            paginatedProducts.map((product) => (
               <div
                 key={product._id}
                 className="bg-white p-4 rounded-lg shadow-md relative transition-transform duration-300 transform hover:scale-105 hover:-translate-y-1 flex flex-col justify-between mb-6"
               >
-                {/* Sale Badge */}
-                {product.salePrice > 0 && product.salePrice < product.price && (
-                  <span className="absolute top-2 right-2 bg-red-500 text-white text-[10px] font-semibold px-1.5 py-0.5 rounded-sm shadow-sm">
-                    SALE
-                  </span>
-                )}
-
                 <div className="relative">
+                  {/* Sale Badge */}
+                  {product.salePrice > 0 && product.salePrice < product.price && (
+                    <span className="absolute top-2 right-2 bg-red-500 text-white text-[10px] font-semibold px-1.5 py-0.5 rounded-sm shadow-sm z-10">
+                      SALE
+                    </span>
+                  )}
+
                   <img
                     src={product.image || 'https://via.placeholder.com/200'}
                     alt={product.title}
-                    className="w-full h-48 object-cover rounded mb-3"
+                    className="w-full h-48 object-contain rounded mb-3"
                   />
                 </div>
 
@@ -259,8 +276,12 @@ useEffect(() => {
                   <div className="text-right">
                     {product.salePrice > 0 && product.salePrice < product.price ? (
                       <>
-                        <p className="text-gray-400 line-through text-sm">${product.price}</p>
-                        <p className="text-green-600 font-bold">${product.salePrice}</p>
+                        <p className="text-gray-400 line-through text-sm">
+                          ${product.price}
+                        </p>
+                        <p className="text-green-600 font-bold">
+                          ${product.salePrice}
+                        </p>
                       </>
                     ) : (
                       <p className="text-blue-600 font-bold">${product.price}</p>
@@ -269,36 +290,56 @@ useEffect(() => {
                 </div>
 
                 <div className="mt-4 space-y-2">
-                <button
-                  onClick={() => {
-                    setSelectedProduct(product);
-                    setIsDialogOpen(true);
-                  }}
-                  className="w-full text-center bg-blue-500 text-white py-1 rounded hover:bg-blue-600 transition cursor-pointer"
-                >
-                  See Details
-                </button>
-
-                {product.totalStock === 0 ? (
                   <button
-                    disabled
-                    className="w-full text-center bg-red-100 text-red-500 py-1 rounded cursor-not-allowed"
+                    onClick={() => {
+                      setSelectedProduct(product);
+                      setIsDialogOpen(true);
+                    }}
+                    className="w-full text-center bg-blue-500 text-white py-1 rounded hover:bg-blue-600 transition cursor-pointer"
                   >
-                    Out of Stock
+                    See Details
                   </button>
-                ) : (
-                  <button
-                    onClick={() => handleAddToCart(product)}
-                    className="w-full text-center bg-gray-200 hover:bg-gray-300 py-1 rounded transition cursor-pointer"
-                  >
-                    Add to Cart
-                  </button>
-                )}
-              </div>
 
+                  {product.totalStock === 0 ? (
+                    <button
+                      disabled
+                      className="w-full text-center bg-red-100 text-red-500 py-1 rounded cursor-not-allowed"
+                    >
+                      Out of Stock
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => handleAddToCart(product)}
+                      className="w-full text-center bg-gray-200 hover:bg-gray-300 py-1 rounded transition cursor-pointer"
+                    >
+                      Add to Cart
+                    </button>
+                  )}
+                </div>
               </div>
             ))
           )}
+        </div>
+
+        {/* Pagination Controls */}
+        <div className="flex justify-center space-x-4 mt-8">
+          <button
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+            className={`px-4 py-2 rounded bg-gray-300 text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed`}
+          >
+            Back
+          </button>
+          <span className="px-4 py-2 text-gray-700">
+            Page {currentPage} of {totalPages}
+          </span>
+          <button
+            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+            disabled={currentPage === totalPages}
+            className={`px-4 py-2 rounded bg-gray-300 text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed`}
+          >
+            Next
+          </button>
         </div>
 
         <ProductDetailsDialog

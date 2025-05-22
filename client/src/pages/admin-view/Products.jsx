@@ -81,9 +81,12 @@ const Products = () => {
   };
   
 
-  useEffect(() => {
+ useEffect(() => {
+  if (!productList.length) {
     dispatch(fetchAllProducts());
-  }, [dispatch]);
+  }
+}, [dispatch, productList.length]);
+
 
   return (
     <div className="relative bg-white p-6 rounded-lg shadow-md overflow-hidden">

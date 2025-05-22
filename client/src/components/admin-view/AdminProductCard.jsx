@@ -9,7 +9,7 @@ const AdminProductCard = ({ product, onEdit, onDelete }) => {
       <img
         src={product.image || product.imageUrl}
         alt={product.title}
-        className="object-cover w-full h-full"
+        className="object-contain w-full h-full"
         />
 
       </div>

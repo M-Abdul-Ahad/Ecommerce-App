@@ -75,3 +75,41 @@ export const addReview = async (req, res) => {
   }
 };
 
+export const deleteReviewByName = async (req, res) => {
+  const { productId, name, comment, createdAt } = req.body;
+
+  if (!productId || !name || !comment || !createdAt) {
+    return res.status(400).json({ message: 'Missing required fields' });
+  }
+
+  try {
+    const product = await Product.findById(productId);
+
+    if (!product) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+
+    const initialLength = product.reviews.length;
+
+    // Filter out the specific review based on name, comment, and createdAt
+    product.reviews = product.reviews.filter((review) => {
+      return !(
+        review.name === name &&
+        review.comment === comment &&
+        new Date(review.createdAt).getTime() === new Date(createdAt).getTime()
+      );
+    });
+
+    if (product.reviews.length === initialLength) {
+      return res.status(404).json({ message: 'Review not found' });
+    }
+
+    await product.save();
+
+    res.status(200).json({ message: 'Review deleted successfully' });
+  } catch (err) {
+    console.error('Error deleting review:', err);
+    res.status(500).json({ message: 'Server error while deleting review' });
+  }
+};
+

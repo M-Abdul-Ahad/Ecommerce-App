@@ -23,6 +23,17 @@ export const addReview = createAsyncThunk(
   }
 );
 
+export const deleteReviewByName = createAsyncThunk(
+  'products/deleteReviewByName',
+  async ({ productId, name, comment, createdAt }) => {
+    await axios.delete('http://localhost:5000/api/shop/products/delete-review', {
+      data: { productId, name, comment, createdAt }
+    });
+    return { productId, name, comment, createdAt };
+  }
+);
+
+
 
 export const fetchAllShoppingProducts=createAsyncThunk('products/fetchAllShoppingProducts',async ()=>{
     const result=await axios.get('http://localhost:5000/api/shop/products/fetch-all')
@@ -88,12 +99,22 @@ const ShoppingProductSlice=createSlice({
           })
 
           .addCase(addReview.fulfilled, (state, action) => {
-  const { productId, review } = action.payload;
-  if (!state.reviewsByProductId[productId]) {
-    state.reviewsByProductId[productId] = [];
-  }
-  state.reviewsByProductId[productId].push(review);
-})
+          const { productId, review } = action.payload;
+          if (!state.reviewsByProductId[productId]) {
+            state.reviewsByProductId[productId] = [];
+          }
+          state.reviewsByProductId[productId].push(review);
+        })
+
+        .addCase(deleteReviewByName.fulfilled, (state, action) => {
+          const { productId, name, comment, createdAt } = action.payload;
+          const list = state.reviewsByProductId[productId] || [];
+
+          state.reviewsByProductId[productId] = list.filter(
+            r =>
+              !(r.name === name && r.comment === comment && new Date(r.createdAt).getTime() === new Date(createdAt).getTime())
+          );
+        })
         
     }
 })
