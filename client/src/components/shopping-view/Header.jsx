@@ -15,7 +15,7 @@ import {
 } from '@heroicons/react/24/outline';
 import { useDispatch, useSelector } from 'react-redux';
 import { logoutUser } from '@/store/authSlice';
-import CartDrawer from './cartDrawer';
+import CartDrawer from './CartDrawer';
 
 
 const Header = () => {
