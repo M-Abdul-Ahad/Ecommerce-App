@@ -14,7 +14,7 @@ import {
   ShoppingBagIcon
 } from '@heroicons/react/24/outline';
 import { useDispatch, useSelector } from 'react-redux';
-import { logoutUser } from '@/store/authSlice';
+import { logoutUser, resetTokenAndCredentials } from '@/store/authSlice';
 import CartDrawer from './CartDrawer';
 
 
@@ -40,7 +40,10 @@ const Header = () => {
 
 
   const handleLogout = () => {
-    dispatch(logoutUser());
+    // dispatch(logoutUser());
+    dispatch(resetTokenAndCredentials())
+    sessionStorage.clear()
+    navigate('/auth/login')
   };
 
   useEffect(() => {

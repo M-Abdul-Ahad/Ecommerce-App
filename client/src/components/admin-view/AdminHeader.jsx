@@ -1,18 +1,18 @@
 import React from 'react';
 import { ShieldCheckIcon, ShoppingBagIcon } from '@heroicons/react/24/outline';
 import { useDispatch } from 'react-redux';
-import { logoutUser } from '@/store/authSlice';
+import { logoutUser,resetTokenAndCredentials } from '@/store/authSlice';
 import toast from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
 
 const AdminHeader = () => {
   const dispatch=useDispatch()
+  const navigate=useNavigate()
   function logout(){
-    try{
-      dispatch(logoutUser())
-      toast.success('User Logged Out!')
-    }catch(e){
-      toast.error('Couldnt Logout!')
-    }
+     // dispatch(logoutUser());
+        dispatch(resetTokenAndCredentials())
+        sessionStorage.clear()
+        navigate('/auth/login')
   }
   return (
     <header className="w-full bg-gray-900 shadow-lg p-4 flex justify-between items-center sticky top-0 z-50">

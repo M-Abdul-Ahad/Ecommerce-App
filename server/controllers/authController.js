@@ -56,9 +56,21 @@ export const loginUser=async (req,res)=>{
             id:checkUser._id, role:checkUser.role, email:checkUser.email,name:checkUser.name
         },'CLIENT_SECRET_KEY',{expiresIn:'60m'})
         
-        res.cookie('token',token,{httpOnly:true, secure:true}).json({
+        // res.cookie('token',token,{httpOnly:true, secure:true}).json({
+        //     success:true,
+        //     message:'Logged In Successfully',
+        //     user:{
+        //         email:checkUser.email,
+        //         role:checkUser.role,
+        //         id:checkUser._id,
+        //         name:checkUser.name
+        //     }
+        // })
+
+        res.status(200).json({
             success:true,
             message:'Logged In Successfully',
+            token,
             user:{
                 email:checkUser.email,
                 role:checkUser.role,
@@ -83,8 +95,31 @@ export const logoutUser=async(req, res)=>{
     })
 }
 
+// export const authMiddleware=async (req,res,next)=>{
+//     const token=req.cookies.token
+//     if(!token){
+//         return res.status(401).json({
+//             success:false,
+//             message:'User in not Authenticated'
+//         })
+//     }
+//     try{
+//         const decodedToken=jwt.verify(token,'CLIENT_SECRET_KEY')
+//         req.user=decodedToken
+//         next()
+//     }catch(e){
+//         console.log('error in authMiddleware',error)
+//         res.status(401).json({
+//             success:false,
+//             message:'Unauthenticated User'
+//         })
+//     }
+// }
+
+
 export const authMiddleware=async (req,res,next)=>{
-    const token=req.cookies.token
+    const authHeader=req.headers['authorization']
+    const token=authHeader && authHeader.split(' ')[1]
     if(!token){
         return res.status(401).json({
             success:false,
