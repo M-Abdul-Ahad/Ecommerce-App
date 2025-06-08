@@ -4,11 +4,9 @@ import { useNavigate } from 'react-router-dom';
 import AddressForm from '@/components/shopping-view/AddressForm';
 import toast from 'react-hot-toast';
 import { fetchAddress } from '../../store/addressSlice';
-import { fetchCartItmes, deleteFromCart, updateCartItem } from '../../store/cartSlice';
-import { createOrder } from '../../store/orderSlice'; // ✅ Import thunk
-import { clearCart,clearCartFromDB } from '../../store/cartSlice';
+import { fetchCartItmes, deleteFromCart, updateCartItem, clearCart, clearCartFromDB } from '../../store/cartSlice';
+import { createOrder } from '../../store/orderSlice';
 import { updateProductStock } from '../../store/shoppingProductsSlice';
-
 
 const Checkout = () => {
   const dispatch = useDispatch();
@@ -25,12 +23,6 @@ const Checkout = () => {
       dispatch(fetchAddress(userId));
     }
   }, [userId, dispatch]);
-
-  useEffect(() => {
-    if (address) {
-      setShowAddressForm(true);
-    }
-  }, [address]);
 
   const handleRemoveItem = (productId) => {
     try {
@@ -61,58 +53,57 @@ const Checkout = () => {
 
   const handleAddressSubmit = (data) => {
     console.log('Submitted address:', data);
+    toast.success(address ? 'Address updated' : 'Address added');
     setShowAddressForm(false);
   };
 
-  // ✅ Handle create order
- const handleCreateOrder = async () => {
-  if (!address || cartItems.length === 0) {
-    toast.error('Address and cart must be present');
-    return;
-  }
+  const handleCreateOrder = async () => {
+    if (!address || cartItems.length === 0) {
+      toast.error('Address and cart must be present');
+      return;
+    }
 
-  const orderPayload = {
-    userId,
-    addressInfo: { address: address.address },
-    items: cartItems.map((item) => ({
-      productId: item.productId._id,
-      quantity: item.quantity,
-    })),
-    totalAmount: totalPrice,
-    orderStatus: 'Pending',
-    orderId: `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-    paymentMethod: 'COD',
-    paymentStatus: 'Paid',
+    const orderPayload = {
+      userId,
+      addressInfo: { address: address.address },
+      items: cartItems.map((item) => ({
+        productId: item.productId._id,
+        quantity: item.quantity,
+      })),
+      totalAmount: totalPrice,
+      orderStatus: 'Pending',
+      orderId: `ORD-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      paymentMethod: 'COD',
+      paymentStatus: 'Paid',
+    };
+
+    try {
+      await dispatch(createOrder(orderPayload)).unwrap();
+      await dispatch(updateProductStock(orderPayload.items)).unwrap();
+      await dispatch(clearCartFromDB(userId)).unwrap();
+      dispatch(clearCart());
+      toast.success('Order created!');
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to create order');
+    }
   };
-
-  try {
-    await dispatch(createOrder(orderPayload)).unwrap();
-
-    // ✅ Reduce stock
-    const stockUpdates = cartItems.map(item => ({
-      productId: item.productId._id,
-      quantity: item.quantity,
-    }));
-    await dispatch(updateProductStock(stockUpdates)).unwrap();
-
-    await dispatch(clearCartFromDB(userId)).unwrap();
-    dispatch(clearCart());
-
-    toast.success('Order created!');
-  } catch (err) {
-    console.error(err);
-    toast.error('Failed to create order');
-  }
-};
-
 
   return (
     <div className="max-w-7xl mx-auto px-6 py-8">
-     <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-6">
 
-        {/* Left: Address Form */}
+        {/* Left: Address Section */}
         <div className="md:col-span-1">
           <h2 className="text-2xl font-semibold mb-4 text-gray-800">Shipping Address</h2>
+
+          <button
+            onClick={() => setShowAddressForm(!showAddressForm)}
+            className="mb-4 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded font-semibold"
+          >
+            {address ? 'Update Address' : 'Add Address'}
+          </button>
+
           {showAddressForm && (
             <AddressForm
               onSubmit={handleAddressSubmit}
@@ -120,9 +111,13 @@ const Checkout = () => {
               isUpdate={!!address}
             />
           )}
+
+          {!address && !showAddressForm && (
+            <p className="text-sm text-gray-500 mt-2">No address found. Please add one to continue.</p>
+          )}
         </div>
 
-        {/* Middle: Vertical Separator */}
+        {/* Middle: Separator */}
         <div className="hidden md:flex justify-center">
           <div className="w-px bg-gray-300 h-full" />
         </div>
@@ -152,27 +147,20 @@ const Checkout = () => {
                       {(() => {
                         const price = item.productId?.price || 0;
                         const salePrice = item.productId?.salePrice || 0;
-                        const finalPrice =
-                          salePrice > 0 && salePrice < price ? salePrice : price;
-                        return `$${finalPrice} × ${item.quantity} = $${(
-                          finalPrice * item.quantity
-                        ).toFixed(2)}`;
+                        const finalPrice = salePrice > 0 && salePrice < price ? salePrice : price;
+                        return `$${finalPrice} × ${item.quantity} = $${(finalPrice * item.quantity).toFixed(2)}`;
                       })()}
                     </p>
                   </div>
                   <div className="flex items-center space-x-3">
                     <button
-                      onClick={() =>
-                        handleUpdateQuantity(item.productId._id, item.quantity - 1)
-                      }
+                      onClick={() => handleUpdateQuantity(item.productId._id, item.quantity - 1)}
                       className="w-7 h-7 bg-red-600 text-white text-sm font-bold rounded hover:bg-red-700 transition"
                     >
                       -1
                     </button>
                     <button
-                      onClick={() =>
-                        handleUpdateQuantity(item.productId._id, item.quantity + 1)
-                      }
+                      onClick={() => handleUpdateQuantity(item.productId._id, item.quantity + 1)}
                       className="w-7 h-7 bg-green-600 text-white text-sm font-bold rounded hover:bg-green-700 transition"
                     >
                       +1
@@ -192,12 +180,11 @@ const Checkout = () => {
               </div>
 
               <button
-                onClick={handleCreateOrder} // ✅ Hooked to thunk dispatch
+                onClick={handleCreateOrder}
                 className="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-semibold transition cursor-pointer"
               >
                 Create Order
               </button>
-
             </div>
           )}
         </div>

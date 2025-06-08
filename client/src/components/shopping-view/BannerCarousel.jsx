@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
 const BannerCarousel = () => {
-  const banners = [1, 2, 3, 4, 5].map((num) => `/banners/banner${num}.webp`);
+  const banners = [1, 2, 3].map((num) => `/banners/banner${num}.webp`);
   const [current, setCurrent] = useState(0);
 
   const nextBanner = () => {
